@@ -17,7 +17,6 @@ def expand_groups(cfg, users):
             section='group %s' % user[1:],
             option='users',
             )
-        members = members.split(',')
+        members = members.split(None)
         for member in members:
-            member = member.strip()
             users.append(member)
