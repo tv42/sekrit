@@ -20,8 +20,9 @@ def verify(cfg, path):
         onerror=reraise,
         ):
 
-        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        dirs[:] = [d for d in dirs if d[0] not in '._']
         dirs.sort()
+        files[:] = [f for f in files if f[0] not in '._']
         files.sort()
 
         if root == path:
