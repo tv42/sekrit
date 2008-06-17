@@ -3,7 +3,10 @@ from sekrit import match_path
 def get_config(cfg, path):
     found = None
     for section in cfg.sections():
-        (type, glob) = section.split(None, 1)
+        try:
+            (type, glob) = section.split(None, 1)
+        except ValueError:
+            continue
         if type != 'access':
             continue
         if not match_path.match_path(

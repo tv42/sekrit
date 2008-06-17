@@ -12,6 +12,9 @@ from sekrit import (
 def test_example():
     cfg = ordered_config_parser.OrderedRawConfigParser()
     cfg.readfp(StringIO("""\
+[foo]
+# i am here to trigger bugs
+
 [access */@root]
 users = @admins
 
