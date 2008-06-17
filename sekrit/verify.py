@@ -19,6 +19,11 @@ def verify(cfg, path):
         top=path,
         onerror=reraise,
         ):
+
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        dirs.sort()
+        files.sort()
+
         if root == path:
             reldir = ''
         else:
@@ -35,11 +40,6 @@ def verify(cfg, path):
                 )
             want = set(want)
             log.debug('Expecting recipients: %s', ' '.join(sorted(want)))
-
-            fpr_to_user = map_fpr_to_user.map_fpr_to_user(
-                cfg=cfg,
-                users=want,
-                )
 
             fullpath = os.path.join(root, filename)
             got = extract_recipients.extract_recipients(fullpath)
@@ -58,17 +58,25 @@ def verify(cfg, path):
             def keyids_to_fprs(keyids):
                 for keyid in keyids:
                     fpr = keyid_to_fingerprint.keyid_to_fingerprint(keyid)
-                    yield fpr
+                    if fpr is None:
+                        log.critical(
+                            '%s: Unexpected recipient keyid: %r',
+                            relpath,
+                            keyid,
+                            )
+                        ok = False
+                    else:
+                        yield fpr
             got = keyids_to_fprs(got)
             got = set(got)
             log.debug('Got recipient fingerprints: %s', ' '.join(got))
 
             got_users = set()
             for fpr in got:
-                user = fpr_to_user.get(fpr)
+                user = map_fpr_to_user.map_fpr_to_user(cfg, fpr)
                 if user is None:
                     log.critical(
-                        '%s: Unexpected recipient fingerprint: %r',
+                        '%s: Unknown recipient fingerprint: %r',
                         relpath,
                         fpr,
                         )

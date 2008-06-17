@@ -1,16 +1,17 @@
-def map_fpr_to_user(cfg, users):
-    r = {}
-    for user in users:
-        fpr = cfg.get('fingerprints', user)
+def map_fpr_to_user(cfg, fpr):
+    result = None
+    for user in cfg.options('fingerprints'):
+        got_fpr = cfg.get('fingerprints', user)
         # allow spaces inside the fingerprint, for copy-paste
         # from gpg --list-secret-keys --fingerprint
-        fpr = ''.join(fpr.split(None))
+        got_fpr = ''.join(got_fpr.split(None))
 
-        if fpr in r:
-            raise RuntimeError(
-                'Fingerprint %r belongs to both %r and %r' \
-                    % (fpr, user, r[fpr]),
-                )
-        r[fpr] = user
+        if got_fpr == fpr:
+            if result is not None:
+                raise RuntimeError(
+                    'Fingerprint %r belongs to both %r and %r' \
+                        % (fpr, result, user),
+                    )
+            result = user
 
-    return r
+    return result
