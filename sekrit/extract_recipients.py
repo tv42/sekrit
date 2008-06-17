@@ -17,6 +17,7 @@ def extract_recipients(path):
             [
                 '--decrypt',
                 '--list-only',
+                '--quiet',
                 ],
             create_fhs=[
                 'status',
