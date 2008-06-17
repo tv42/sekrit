@@ -1,4 +1,8 @@
+import logging
+import sys
 import GnuPGInterface
+
+log = logging.getLogger('sekrit.keyid_to_fingerprint')
 
 def keyid_to_fingerprint(keyid):
     """
@@ -19,6 +23,7 @@ def keyid_to_fingerprint(keyid):
             '--fingerprint',
             '--with-colons',
             '--fixed-list-mode',
+            '--quiet',
             '0x%s' % keyid,
             ],
         create_fhs=[
@@ -44,11 +49,19 @@ def keyid_to_fingerprint(keyid):
         elif type_ == 'sub':
             pub = None
 
+    if fpr is None:
+        log.error('Keyid not in keyring: %s', keyid)
+
     try:
         p.wait()
     except IOError, e:
-        print >>sys.stderr, '%s: gnupg: %s' % (sys.argv[0], e)
-        sys.exit(1)
+        if (fpr is None
+            and str(e) == 'GnuPG exited non-zero, with code 131072'):
+            # yeah, we already reported this above, eat the error
+            pass
+        else:
+            print >>sys.stderr, '%s: gnupg: %s' % (sys.argv[0], e)
+            sys.exit(1)
 
     return fpr
 
