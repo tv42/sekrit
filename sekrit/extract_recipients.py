@@ -7,6 +7,9 @@ def extract_recipients(path):
     # See gpg FAQ, /usr/share/doc/gnupg2/faq.html question 4.12, "How
     # can I get list of key IDs used to encrypt a message?". Note that
     # the result is often subkeys, not primary keys.
+
+    # Don't use --hidden-recipient or --throw-keyids, or extracting
+    # recipients will not be possible.
     gpg = GnuPGInterface.GnuPG()
 
     with file(path, 'rb') as f:
