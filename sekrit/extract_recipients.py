@@ -3,6 +3,12 @@ from __future__ import with_statement
 import sys
 import GnuPGInterface
 
+class GnuPGError(Exception):
+    def __init__(self, gnupg_exception):
+        self.gnupg_exception = gnupg_exception
+    def __str__(self):
+        return str(self.gnupg_exception)
+
 def extract_recipients(path):
     # See gpg FAQ, /usr/share/doc/gnupg2/faq.html question 4.12, "How
     # can I get list of key IDs used to encrypt a message?". Note that
@@ -45,5 +51,4 @@ def extract_recipients(path):
         try:
             fpr.wait()
         except IOError, e:
-            print >>sys.stderr, '%s: gnupg: %s' % (sys.argv[0], e)
-            sys.exit(1)
+            raise GnuPGError(e)
