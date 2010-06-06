@@ -1,2 +1,16 @@
+*~
+.#*
+## the next line needs to start with a backslash to avoid looking like
+## a comment
+\#*#
+.*.swp
+
 *.pyc
 *.pyo
+*.egg-info
+/build
+/dist
+
+/virtual
+/bin
+/downloads
