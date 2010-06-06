@@ -1,0 +1,7 @@
+# TODO do I really need to repeat setup.py dependencies here?
+
+# PyPI for GnuPGInterface is all messed up
+http://sourceforge.net/projects/py-gnupg/files/GnuPGInterface/0.3.2/GnuPGInterface-0.3.2.tar.gz/download#egg=GnuPGInterface
+
+# conveniences
+nose
