@@ -22,6 +22,7 @@ TODO
         'console_scripts': [
             'sekrit-set = sekrit.cli.set_:main',
             'sekrit-get = sekrit.cli.get:main',
+            'sekrit-verify = sekrit.cli.verify:main',
             ],
         },
 
