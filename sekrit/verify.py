@@ -106,6 +106,6 @@ def verify(cfg, path):
                 ok = False
 
             if ok:
-                log.info('%s: ok: %s', relpath, ' '.join(sorted(got_users)))
+                log.debug('%s: ok: %s', relpath, ' '.join(sorted(got_users)))
 
     return ok
