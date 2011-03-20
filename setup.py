@@ -26,11 +26,8 @@ TODO
             ],
         },
 
-    requires=[
-        'GnuPGInterface',
-        ],
-
     install_requires=[
+        'GnuPGInterface',
         'setuptools>=0.6c9',
         ],
 
