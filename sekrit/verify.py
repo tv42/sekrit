@@ -1,3 +1,5 @@
+import ConfigParser
+import fnmatch
 import logging
 import os
 
@@ -9,6 +11,16 @@ from sekrit import (
     keyid_to_fingerprint,
     map_fpr_to_user,
     )
+
+
+def filter_ignored(filenames, ignore):
+    for name in filenames:
+        for pattern in ignore:
+            if fnmatch.fnmatch(name, pattern):
+                break
+        else:
+            yield name
+
 
 def verify(cfg, path):
     ok = True
@@ -22,8 +34,18 @@ def verify(cfg, path):
 
         dirs[:] = [d for d in dirs if d[0] not in '._']
         dirs.sort()
-        files[:] = [f for f in files if f[0] not in '._']
-        files.sort()
+        try:
+            ignore = cfg.get('sekrit', 'ignore')
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            ignore = []
+        else:
+            ignore = ignore.split('\n')
+            ignore = [s.strip() for s in ignore]
+            ignore = [s for s in ignore if s]
+
+        files = (f for f in files if f[0] not in '._')
+        files = filter_ignored(filenames=files, ignore=ignore)
+        files = sorted(files)
 
         if root == path:
             reldir = ''
