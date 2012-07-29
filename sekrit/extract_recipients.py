@@ -4,10 +4,14 @@ import sys
 import GnuPGInterface
 
 class GnuPGError(Exception):
-    def __init__(self, gnupg_exception):
+    def __init__(self, path, gnupg_exception):
+        self.path = path
         self.gnupg_exception = gnupg_exception
     def __str__(self):
-        return str(self.gnupg_exception)
+        return '{path}: {err}'.format(
+            path=self.path,
+            err=self.gnupg_exception,
+            )
 
 def extract_recipients(path):
     # See gpg FAQ, /usr/share/doc/gnupg2/faq.html question 4.12, "How
@@ -51,4 +55,4 @@ def extract_recipients(path):
         try:
             fpr.wait()
         except IOError, e:
-            raise GnuPGError(e)
+            raise GnuPGError(path, e)
