@@ -1,7 +1,5 @@
-import ConfigParser
-import fnmatch
 import logging
-import os
+
 
 log = logging.getLogger('sekrit.verify')
 
@@ -10,52 +8,13 @@ from sekrit import (
     extract_recipients,
     keyid_to_fingerprint,
     map_fpr_to_user,
+    walk,
     )
-
-
-def filter_ignored(filenames, ignore):
-    for name in filenames:
-        for pattern in ignore:
-            if fnmatch.fnmatch(name, pattern):
-                break
-        else:
-            yield name
 
 
 def verify(cfg, path):
     ok = True
-    prefix = path+os.sep
-    def reraise(e):
-        raise e
-    for root, dirs, files in os.walk(
-        top=path,
-        onerror=reraise,
-        ):
-
-        dirs[:] = [d for d in dirs if d[0] not in '._']
-        dirs.sort()
-        try:
-            ignore = cfg.get('sekrit', 'ignore')
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            ignore = []
-        else:
-            ignore = ignore.split('\n')
-            ignore = [s.strip() for s in ignore]
-            ignore = [s for s in ignore if s]
-
-        files = (f for f in files if f[0] not in '._')
-        files = filter_ignored(filenames=files, ignore=ignore)
-        files = sorted(files)
-
-        if root == path:
-            reldir = ''
-        else:
-            assert root.startswith(prefix), \
-                'expecting root to start with prefix: %r' % root
-            reldir = root[len(prefix):]
-        log.debug('Walking dir: %s', reldir or '.')
-        for filename in files:
-            relpath = os.path.join(reldir, filename)
+    for relpath, path in walk.walk(cfg=cfg, path=path):
             log.debug('Verifying file: %s', relpath)
             want = decide_recipients.decide_recipients(
                 cfg=cfg,
@@ -64,8 +23,7 @@ def verify(cfg, path):
             want = set(want)
             log.debug('Expecting recipients: %s', ' '.join(sorted(want)))
 
-            fullpath = os.path.join(root, filename)
-            got = extract_recipients.extract_recipients(fullpath)
+            got = extract_recipients.extract_recipients(path)
             got = set(got)
             log.debug('Got recipient keyids: %s', ' '.join(got))
 
