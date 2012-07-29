@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+test -d virtualenv || virtualenv --no-site-packages virtualenv
+./virtualenv/bin/pip install -r requirements.txt
+./virtualenv/bin/python setup.py develop

@@ -11,6 +11,4 @@
 /build
 /dist
 
-/virtual
-/bin
-/downloads
+/virtualenv
