@@ -1,5 +1,6 @@
 import logging
 import optparse
+import os
 import sys
 
 from sekrit import (
@@ -21,5 +22,10 @@ def main():
         cfg.readfp(f)
     for arg in args:
         secret = get_secret.get_secret(cfg=cfg, path=arg)
+        if os.isatty(sys.stdout.fileno()):
+            # for human copy-paste convenience, ensure there's a
+            # newline
+            if not secret.endswith('\n'):
+                secret += '\n'
         sys.stdout.write(secret)
         del secret
