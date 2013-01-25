@@ -1,5 +1,7 @@
 import logging
 
+from collections import namedtuple
+
 
 log = logging.getLogger('sekrit.verify')
 
@@ -12,10 +14,33 @@ from sekrit import (
     )
 
 
+VerifyResult = namedtuple(
+    'VerifyResult',
+    [
+        'path',
+        'extra',
+        'missing',
+        'unknown_keys',
+        'unknown_fingerprints',
+        ],
+    )
+
+
 def verify(cfg, path):
-    ok = True
+    """
+    Generates a list of problems, each item a `VerifyResult`; empty
+    list means everything is good.
+    """
     for relpath, path in walk.walk(cfg=cfg, path=path):
             log.debug('Verifying file: %s', relpath)
+            ok = True
+            result = VerifyResult(
+                path=relpath,
+                extra=set(),
+                missing=set(),
+                unknown_keys=set(),
+                unknown_fingerprints=set(),
+                )
             want = decide_recipients.decide_recipients(
                 cfg=cfg,
                 path=relpath,
@@ -23,9 +48,9 @@ def verify(cfg, path):
             want = set(want)
             log.debug('Expecting recipients: %s', ' '.join(sorted(want)))
 
-            got = extract_recipients.extract_recipients(path)
-            got = set(got)
-            log.debug('Got recipient keyids: %s', ' '.join(got))
+            keyids = extract_recipients.extract_recipients(path)
+            keyids = set(keyids)
+            log.debug('Got recipient keyids: %s', ' '.join(keyids))
 
             # Keyids can collide; that means a message may (to us)
             # look like it's encrypted to Bob, but in reality it's
@@ -36,24 +61,23 @@ def verify(cfg, path):
             # infeasible. Hence, we will just assume the keyids
             # extracted above map simply to our known
             # fingerprints/users.
-            def keyids_to_fprs(keyids):
-                for keyid in keyids:
-                    fpr = keyid_to_fingerprint.keyid_to_fingerprint(keyid)
-                    if fpr is None:
-                        log.critical(
-                            '%s: Unexpected recipient keyid: %r',
-                            relpath,
-                            keyid,
-                            )
-                        ok = False
-                    else:
-                        yield fpr
-            got = keyids_to_fprs(got)
-            got = set(got)
-            log.debug('Got recipient fingerprints: %s', ' '.join(got))
+            fprs = set()
+            for keyid in keyids:
+                fpr = keyid_to_fingerprint.keyid_to_fingerprint(keyid)
+                if fpr is None:
+                    log.critical(
+                        '%s: Unexpected recipient keyid: %r',
+                        relpath,
+                        keyid,
+                        )
+                    result.unknown_keys.add(keyid)
+                    ok = False
+                else:
+                    fprs.add(fpr)
+            log.debug('Got recipient fingerprints: %s', ' '.join(fprs))
 
             got_users = set()
-            for fpr in got:
+            for fpr in fprs:
                 user = map_fpr_to_user.map_fpr_to_user(cfg, fpr)
                 if user is None:
                     log.critical(
@@ -61,6 +85,7 @@ def verify(cfg, path):
                         relpath,
                         fpr,
                         )
+                    result.unknown_fingerprints.add(fpr)
                     ok = False
                 else:
                     got_users.add(user)
@@ -74,6 +99,7 @@ def verify(cfg, path):
                     relpath,
                     ' '.join(sorted(extra)),
                     )
+                result.extra.update(extra)
                 ok = False
 
             missing = want - got_users
@@ -83,9 +109,11 @@ def verify(cfg, path):
                     relpath,
                     ' '.join(sorted(missing)),
                     )
+                result.missing.update(missing)
                 ok = False
 
             if ok:
-                log.debug('%s: ok: %s', relpath, ' '.join(sorted(got_users)))
-
-    return ok
+                log.info('%s: ok: %s', relpath, ' '.join(sorted(got_users)))
+            else:
+                log.error('%s: bad: %s', relpath)
+                yield result

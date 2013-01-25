@@ -72,10 +72,11 @@ esa = 8208 9CF0 7AAB AAC2 C25D  9C70 407A 5DA8 04F6 4D37
     handler.setLevel(logging.INFO)
     log.addHandler(handler)
     try:
-        got = verify.verify(cfg=cfg, path=tmp)
+        g = verify.verify(cfg=cfg, path=tmp)
+        # no problems
+        assert_raises(StopIteration, next, g)
     finally:
         log.removeHandler(handler)
-    eq(got, True)
     handler.flush()
     eq(
         buf.getvalue().splitlines(),
