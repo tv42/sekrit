@@ -17,7 +17,9 @@ def filter_ignored(filenames, ignore):
 
 
 def walk(cfg, path):
-    prefix = path+os.sep
+    # make sure incoming paths like "foo/" are normalized, or the
+    # prefix logic below will fail
+    prefix = path.rstrip('/')+os.sep
     def reraise(e):
         raise e
     for root, dirs, files in os.walk(

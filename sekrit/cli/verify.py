@@ -1,3 +1,4 @@
+import itertools
 import logging
 import optparse
 
@@ -9,17 +10,20 @@ from sekrit import (
 def main():
     logging.basicConfig(level=logging.WARNING)
 
-    parser = optparse.OptionParser(usage='%prog')
+    parser = optparse.OptionParser(usage='%prog [PATH..]')
     (options, args) = parser.parse_args()
 
-    if args:
-        parser.error('Got unexpected arguments')
+    if not args:
+        args = ['.']
 
     cfg = ordered_config_parser.OrderedRawConfigParser()
     with file('sekrit.conf') as f:
         cfg.readfp(f)
     ok = True
-    problems = verify.verify(cfg=cfg, path='.')
+    problems = itertools.chain.from_iterable(
+        verify.verify(cfg=cfg, path=path)
+        for path in args
+        )
     for result in problems:
         ok = False
 
