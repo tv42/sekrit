@@ -47,8 +47,7 @@ def set_secret(cfg, path):
     if not os.isatty(sys.stdin.fileno()):
         # redirected from file / pipe, read passphrase from there
         secret1 = sys.stdin.readline()
-        assert secret1[-1] == '\n'
-        secret1 = secret1[:-1]
+        secret1 = secret1.rstrip('\n')
     else:
         secret1 = prompt(message='Passphrase for %s' % path)
         secret2 = prompt(message='Repeat pass for %s' % path)
