@@ -115,5 +115,5 @@ def verify(cfg, path):
             if ok:
                 log.info('%s: ok: %s', relpath, ' '.join(sorted(got_users)))
             else:
-                log.error('%s: bad: %s', relpath)
+                log.error('%s: bad', relpath)
                 yield result
